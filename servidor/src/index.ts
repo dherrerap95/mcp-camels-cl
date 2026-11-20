@@ -5,13 +5,13 @@ import { z } from "zod";
 import { GRUPOS, descripcionDe, grupoDe } from "./atributos";
 import {
   agregar,
-  diaDeIso,
   estadisticos,
   excedencia,
   extremosAnuales,
   isoDeDia,
   nValidos,
   num,
+  periodo,
   recortar,
   tabla,
   validosDesc,
@@ -56,10 +56,13 @@ function celda(v: unknown, clave = ""): string {
 }
 
 // Convierte desde/hasta en índices de tiempo según el paso de la serie.
-function limites(paso: "diario" | "anual", desde?: string, hasta?: string): [number | undefined, number | undefined] {
+function limites(paso: "diario" | "anual", desde?: string, hasta?: string, mesInicio = 1): [number | undefined, number | undefined] {
   if (paso === "anual") return [desde ? Number(desde.slice(0, 4)) : undefined, hasta ? Number(hasta.slice(0, 4)) : undefined];
-  return [desde ? diaDeIso(desde) : undefined, hasta ? diaDeIso(hasta, true) : undefined];
+  return periodo(desde, hasta, mesInicio);
 }
+
+const REGLA_PERIODO =
+  "Con mes_inicio_anio distinto de 1 (por ejemplo 4, año hidrológico abril-marzo), desde y hasta escritos solo como año (AAAA) se interpretan como años hidrológicos completos nombrados por su año de inicio: desde '1980' y hasta '2019' abarcan 1980/81 a 2019/20 (1980-04-01 a 2020-03-31). Para cortar por fechas exactas use AAAA-MM o AAAA-MM-DD.";
 
 const esquemaFecha = z
   .string()
@@ -71,7 +74,7 @@ function crearServidor(env: Env): McpServer {
   const maxFilas = Number(env.MAX_FILAS);
   const maxCuencas = Number(env.MAX_CUENCAS);
   const minComp = Number(env.MIN_COMPLETITUD);
-  const server = new McpServer({ name: "camels-cl", title: `MCP de CAMELS-CL (${AUTOR})`, version: "0.1.0" });
+  const server = new McpServer({ name: "camels-cl", title: `MCP de CAMELS-CL (${AUTOR})`, version: "0.2.0" });
 
   server.registerTool(
     "describir_fuente",
@@ -219,14 +222,14 @@ function crearServidor(env: Env): McpServer {
     {
       title: "Serie de tiempo",
       description:
-        "Entrega la serie de una variable para una cuenca y período, en paso diario, mensual o anual (año calendario o hidrológico con mes_inicio_anio=4). Caudal y temperaturas se promedian; precipitación y ETP se suman. Para períodos largos use paso mensual o anual: la salida se limita en filas.",
+        "Entrega la serie de una variable para una cuenca y período, en paso diario, mensual o anual (año calendario o hidrológico con mes_inicio_anio=4). Caudal y temperaturas se promedian; precipitación y ETP se suman. Para períodos largos use paso mensual o anual: la salida se limita en filas. " + REGLA_PERIODO,
       inputSchema: z.object({
         gauge_id: z.number().int(),
         variable: z.enum(VARIABLES),
         paso: z.enum(["diario", "mensual", "anual"]).optional().describe("mensual por omisión"),
         desde: esquemaFecha.describe("Inicio del período (AAAA, AAAA-MM o AAAA-MM-DD)"),
         hasta: esquemaFecha.describe("Fin del período (AAAA, AAAA-MM o AAAA-MM-DD)"),
-        mes_inicio_anio: z.number().int().min(1).max(12).optional().describe("Mes de inicio del año para paso anual (1 calendario, 4 hidrológico abril-marzo)"),
+        mes_inicio_anio: z.number().int().min(1).max(12).optional().describe("Mes de inicio del año (1 calendario, 4 hidrológico abril-marzo); define la agregación anual y cómo se leen desde y hasta escritos como año"),
       }),
       annotations: ANOTACIONES,
     },
@@ -237,7 +240,7 @@ function crearServidor(env: Env): McpServer {
       const p = meta.paso === "anual" ? "anual" : (paso ?? "mensual");
       const s0 = await serie(env, variable, gauge_id, meta.paso);
       if (!s0) return error(`La cuenca ${gauge_id} no tiene datos de ${variable}.`);
-      const [a, b] = limites(meta.paso, desde, hasta);
+      const [a, b] = limites(meta.paso, desde, hasta, mes_inicio_anio ?? 1);
       const s = recortar(s0, a, b);
       if (s.valores.length === 0) return error(`Sin datos de ${variable} en el período pedido para la cuenca ${gauge_id}.`);
       const val = nValidos(s.valores);
@@ -268,13 +271,13 @@ function crearServidor(env: Env): McpServer {
     {
       title: "Estadísticas de una variable",
       description:
-        "Calcula estadísticas de una variable diaria en una cuenca y período: media, valores anuales (media, desviación, mínimo y máximo), régimen mensual y, para caudal (q_m3s), curva de duración (Q5 a Q95 por excedencia) y extremos diarios anuales.",
+        "Calcula estadísticas de una variable diaria en una cuenca y período: media, valores anuales (media, desviación, mínimo y máximo), régimen mensual y, para caudal (q_m3s), curva de duración (Q5 a Q95 por excedencia) y extremos diarios anuales. " + REGLA_PERIODO,
       inputSchema: z.object({
         gauge_id: z.number().int(),
         variable: z.enum(["q_m3s", "p_cr2met", "p_mswep", "p_chirps", "p_tmpa", "tmin", "tmean", "tmax", "pet"]),
         desde: esquemaFecha,
         hasta: esquemaFecha,
-        mes_inicio_anio: z.number().int().min(1).max(12).optional().describe("4 para año hidrológico abril-marzo (por omisión 1)"),
+        mes_inicio_anio: z.number().int().min(1).max(12).optional().describe("4 para año hidrológico abril-marzo (por omisión 1); define cómo se leen desde y hasta escritos como año"),
       }),
       annotations: ANOTACIONES,
     },
@@ -284,7 +287,7 @@ function crearServidor(env: Env): McpServer {
       const meta = (await catalogo(env)).variables[variable];
       const s0 = await serie(env, variable, gauge_id, "diario");
       if (!s0) return error(`La cuenca ${gauge_id} no tiene datos de ${variable}.`);
-      const [a, b] = limites("diario", desde, hasta);
+      const [a, b] = limites("diario", desde, hasta, mes_inicio_anio ?? 1);
       const s = recortar(s0, a, b);
       const val = nValidos(s.valores);
       if (val === 0) return error(`Sin datos de ${variable} en el período pedido para la cuenca ${gauge_id}.`);

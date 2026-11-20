@@ -1,6 +1,6 @@
 // Pruebas unitarias de los cálculos hidrológicos.
 import { describe, expect, it } from "vitest";
-import { agregar, diaDeIso, excedencia, extremosAnuales, isoDeDia, nValidos, recortar, validosDesc } from "../src/calculos";
+import { agregar, diaDeIso, excedencia, extremosAnuales, isoDeDia, nValidos, periodo, recortar, validosDesc } from "../src/calculos";
 import type { Serie } from "../src/datos";
 
 // Crea una serie diaria desde una fecha ISO con los valores dados.
@@ -20,6 +20,23 @@ describe("fechas", () => {
   });
   it("rechaza fechas no válidas", () => {
     expect(() => diaDeIso("2019-xx")).toThrow();
+  });
+});
+
+describe("periodo", () => {
+  // Convierte el par de días a fechas ISO para comparar.
+  const iso = (p: [number | undefined, number | undefined]) => p.map((d) => (d === undefined ? undefined : isoDeDia(d)));
+  it("lee años como años hidrológicos completos cuando el año no parte en enero", () => {
+    expect(iso(periodo("1980", "2019", 4))).toEqual(["1980-04-01", "2020-03-31"]);
+  });
+  it("mantiene el año calendario cuando el año parte en enero", () => {
+    expect(iso(periodo("1980", "2019", 1))).toEqual(["1980-01-01", "2019-12-31"]);
+  });
+  it("respeta fechas con mes o día aunque el año sea hidrológico", () => {
+    expect(iso(periodo("1980-01", "2019-12-31", 4))).toEqual(["1980-01-01", "2019-12-31"]);
+  });
+  it("deja abiertos los extremos no indicados", () => {
+    expect(iso(periodo(undefined, "2000", 4))).toEqual([undefined, "2001-03-31"]);
   });
 });
 

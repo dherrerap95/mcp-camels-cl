@@ -32,6 +32,16 @@ export function diaDeIso(txt: string, alFinal = false): number {
   return Date.UTC(a, m - 1, d) / MS_DIA;
 }
 
+// Convierte desde/hasta en días; con año hidrológico, un año solo (AAAA) abarca el año hidrológico completo que empieza en él.
+export function periodo(desde?: string, hasta?: string, mesInicio = 1): [number | undefined, number | undefined] {
+  const soloAnio = /^\d{4}$/;
+  const hidro = mesInicio !== 1;
+  const a = desde === undefined ? undefined : hidro && soloAnio.test(desde) ? Date.UTC(Number(desde), mesInicio - 1, 1) / MS_DIA : diaDeIso(desde);
+  const b =
+    hasta === undefined ? undefined : hidro && soloAnio.test(hasta) ? Date.UTC(Number(hasta) + 1, mesInicio - 1, 1) / MS_DIA - 1 : diaDeIso(hasta, true);
+  return [a, b];
+}
+
 // Recorta una serie al período pedido (índices de tiempo inclusivos).
 export function recortar(s: Serie, desde?: number, hasta?: number): Serie {
   const fin = s.inicio + s.valores.length - 1;

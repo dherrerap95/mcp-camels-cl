@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mcp-camels-cl",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-20",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "../datos/procesados",
+    "binding": "ASSETS",
+    "run_worker_first": ["/mcp", "/mcp/*"]
+  },
+  "vars": {
+    "MAX_FILAS": "400",
+    "MAX_CUENCAS": "50",
+    "MIN_COMPLETITUD": "0.8"
+  }
+}

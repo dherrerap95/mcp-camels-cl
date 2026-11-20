@@ -1,0 +1,22 @@
+{
+  "zip": "datos/originales/CAMELS_CL_v202201.zip",
+  "carpeta_en_zip": "CAMELS_CL_v202201/",
+  "salida": "datos/procesados/camels_cl",
+  "version": "v202201",
+  "cita": "Alvarez-Garreton, C., Mendoza, P. A., Boisier, J. P., Addor, N., Galleguillos, M., Zambrano-Bigiarini, M., Lara, A., Puelma, C., Cortes, G., Garreaud, R., McPhee, J. y Ayala, A. (2018). The CAMELS-CL dataset: catchment attributes and meteorology for large sample studies, Chile dataset. Hydrology and Earth System Sciences, 22, 5817-5849. https://hess.copernicus.org/articles/22/5817/2018/",
+  "licencia": "CC BY 4.0",
+  "archivo_atributos": "catchment_attributes.csv",
+  "variables": {
+    "q_m3s":          {"archivo": "q_m3s_day.csv",              "paso": "diario", "unidad": "m3/s", "agregacion": "media", "descripcion": "Caudal medio diario observado (estaciones fluviométricas DGA)"},
+    "p_cr2met":       {"archivo": "precip_cr2met_mm_day.csv",   "paso": "diario", "unidad": "mm",   "agregacion": "suma",  "descripcion": "Precipitación diaria media de la cuenca, producto CR2MET v2"},
+    "p_mswep":        {"archivo": "precip_mswep_mm_day.csv",    "paso": "diario", "unidad": "mm",   "agregacion": "suma",  "descripcion": "Precipitación diaria media de la cuenca, producto MSWEP v2.2"},
+    "p_chirps":       {"archivo": "precip_chirps_mm_day.csv",   "paso": "diario", "unidad": "mm",   "agregacion": "suma",  "descripcion": "Precipitación diaria media de la cuenca, producto CHIRPS v2"},
+    "p_tmpa":         {"archivo": "precip_tmpa_mm_day.csv",     "paso": "diario", "unidad": "mm",   "agregacion": "suma",  "descripcion": "Precipitación diaria media de la cuenca, producto TMPA 3B42 v7"},
+    "tmin":           {"archivo": "tmin_cr2met_C_day.csv",      "paso": "diario", "unidad": "°C",   "agregacion": "media", "descripcion": "Temperatura mínima diaria media de la cuenca, CR2MET"},
+    "tmean":          {"archivo": "tmean_cr2met_C_day.csv",     "paso": "diario", "unidad": "°C",   "agregacion": "media", "descripcion": "Temperatura media diaria de la cuenca, CR2MET"},
+    "tmax":           {"archivo": "tmax_cr2met_C_day.csv",      "paso": "diario", "unidad": "°C",   "agregacion": "media", "descripcion": "Temperatura máxima diaria media de la cuenca, CR2MET"},
+    "pet":            {"archivo": "pet_hargreaves_mm_day.csv",  "paso": "diario", "unidad": "mm",   "agregacion": "suma",  "descripcion": "Evapotranspiración potencial diaria de la cuenca, método de Hargreaves"},
+    "derechos_sup":   {"archivo": "cons_sf_wr_Ls_year.csv",     "paso": "anual",  "unidad": "L/s",  "agregacion": "ultimo","descripcion": "Derechos consuntivos superficiales acumulados en la cuenca al año indicado"},
+    "derechos_sub":   {"archivo": "cons_gw_wr_Ls_year.csv",     "paso": "anual",  "unidad": "L/s",  "agregacion": "ultimo","descripcion": "Derechos consuntivos subterráneos acumulados en la cuenca al año indicado"}
+  }
+}

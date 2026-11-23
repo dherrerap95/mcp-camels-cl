@@ -14,7 +14,7 @@ Agregar esta dirección como conector personalizado en cualquier cliente MCP que
 No requiere cuenta, clave ni instalación.
 
 ```
-https://mcp-camels-cl.mcp-camels-cl.workers.dev/mcp
+https://mcp-camels-cl.mcp-hidro-chile.workers.dev/mcp
 ```
 
 ## Qué se puede consultar

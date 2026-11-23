@@ -23,4 +23,4 @@ jobs:
         with:
           python-version: "3.12"
       - name: Probar las herramientas en producción
-        run: python servidor/test/probar_mcp.py https://mcp-camels-cl.mcp-camels-cl.workers.dev/mcp
+        run: python servidor/test/probar_mcp.py https://mcp-camels-cl.mcp-hidro-chile.workers.dev/mcp
